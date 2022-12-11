@@ -1,0 +1,5 @@
+host = "195.133.147.31"
+user = "admin"
+password = "admin"
+port = "5432"
+db_name = "anikin"
