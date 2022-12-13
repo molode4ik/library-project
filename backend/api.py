@@ -2,6 +2,7 @@ import sqlalchemy_connect as db
 import api_models as models
 from fastapi import FastAPI
 from session import get_session, check_connection
+import scripts
 
 
 app = FastAPI()
@@ -104,11 +105,33 @@ async def add_scientist(scientist: models.Scientist):
         return result
 
 
-@app.post('/api/get_users')
+@app.post('/api/get_user_info')
+async def get_user_info(user_id: int):
+    try:
+        result = db.get_user_info(user_id, check_connection(connection))
+    except Exception as er:
+        print(er)
+        result = -1
+    finally:
+        return result
+
+
+@app.post('/api/get_students')
 async def get_users():
     try:
-        db.get_users(check_connection(connection))
-        result = 0
+        result = db.list_charters('students', check_connection(connection))
+        print(db.get_library(check_connection(connection)))
+    except Exception as er:
+        print(er)
+        result = -1
+    finally:
+        return result
+
+
+@app.post('/api/get_library_name')
+async def get_library_name(library_id: int):
+    try:
+        result = scripts.get_library_name(db.get_libraries(check_connection(connection)), library_id)
     except Exception as er:
         print(er)
         result = -1
