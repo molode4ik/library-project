@@ -2,11 +2,8 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     INTEGER,
-    BOOLEAN,
     VARCHAR,
-    JSON,
     DATE,
-    FLOAT
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
@@ -57,14 +54,14 @@ class Schools(Base):
 
 class Pensioners(Base):
     __tablename__ = "pensioners"
-    Pen_id = Column(INTEGER, primary_key=True)
+    pen_id = Column(INTEGER, primary_key=True)
     user_id = Column(ForeignKey('users.u_id'), nullable=False, index=True)
     pen_certificate_number = Column(INTEGER, nullable=True, default=None)
 
 
 class Scientists(Base):
     __tablename__ = "scientists"
-    sr_id = Column(INTEGER, primary_key=True)
+    sci_id = Column(INTEGER, primary_key=True)
     user_id = Column(ForeignKey('users.u_id'), nullable=False, index=True)
     organization = Column(VARCHAR(50), nullable=True, default=None)
     theme = Column(VARCHAR(150), nullable=True, default=None)
@@ -80,21 +77,21 @@ class Libraries(Base):
 
 class Halls(Base):
     __tablename__ = "halls"
-    hall_id = Column(INTEGER, primary_key=True)
+    h_id = Column(INTEGER, primary_key=True)
     number_hall = Column(INTEGER, nullable=True, default=None)
     l_id = Column(ForeignKey('libraries.l_id'), nullable=False, index=True)
 
 
 class Shelves(Base):
     __tablename__ = "shelves"
-    shelf_id = Column(INTEGER, primary_key=True)
-    hall_id = Column(ForeignKey('halls.hall_id'), nullable=False, index=True)
+    sh_id = Column(INTEGER, primary_key=True)
+    h_id = Column(ForeignKey('halls.hall_id'), nullable=False, index=True)
 
 
 class Publication(Base):
     __tablename__ = "publication"
     pub_id = Column(INTEGER, primary_key=True)
-    s_id = Column(ForeignKey('shelves.shelf_id'), nullable=False, index=True)
+    sh_id = Column(ForeignKey('shelves.shelf_id'), nullable=False, index=True)
     book_id = Column(ForeignKey('books.b_id'), nullable=False, index=True)
 
 
@@ -111,20 +108,20 @@ class Authors(Base):
     __tablename__ = "authors"
     a_id = Column(INTEGER, primary_key=True)
     authors_FIO = Column(VARCHAR(50), nullable=True, default=None)
-    a_book = Column(VARCHAR(50), nullable=True, default=None)
+    b_name = Column(VARCHAR(50), nullable=True, default=None, unique=True)
 
 
 class Library_workers(Base):
     __tablename__ = "library_workers"
     lw_id = Column(INTEGER, primary_key=True)
-    library_id = Column(ForeignKey('libraries.l_id'), nullable=False, index=True)
-    fio_workers = Column(VARCHAR(50), nullable=True, default=None)
+    l_id = Column(ForeignKey('libraries.l_id'), nullable=False, index=True)
+    lw_dio = Column(VARCHAR(50), nullable=True, default=None)
 
 
 class Decommissioned(Base):
     __tablename__ = "decommissioned"
     d_id = Column(INTEGER, primary_key=True)
-    book_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
+    pub_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
     data_dec = Column(DATE, nullable=True, default=None)
 
 
@@ -134,15 +131,8 @@ class Extradition(Base):
     p_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
     user_id = Column(ForeignKey('users.u_id'), nullable=False, index=True)
     deadline = Column(DATE, nullable=True, default=None)
-    datatime = Column(DATE, nullable=True, default=None)
-    id_workers = Column(ForeignKey('library_workers.lw_id'), nullable=False, index=True)
+    datetime = Column(DATE, nullable=True, default=None)
+    lw_id = Column(ForeignKey('library_workers.lw_id'), nullable=False, index=True)
 
 
-
-
-
-
-
-
-engine = create_engine("postgresql+psycopg2://admin:admin@195.133.147.31/anikin", )
-Base.metadata.create_all(engine)
+Base.metadata.create_all(create_engine("postgresql+psycopg2://postgres:postgres@95.142.47.122/library", ))
