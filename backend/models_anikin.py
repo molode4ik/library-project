@@ -14,7 +14,7 @@ Base = declarative_base()
 class Users(Base):
     __tablename__ = "users"
     u_id = Column(INTEGER, primary_key=True)
-    u_last_data = Column(DATE, nullable=True, default=None)
+    u_last_date = Column(DATE, nullable=True, default=None)
     id_library = Column(INTEGER, nullable=True, default=None)
     u_fio = Column(VARCHAR(50), nullable=True, default=None)
 
@@ -122,7 +122,7 @@ class Decommissioned(Base):
     __tablename__ = "decommissioned"
     d_id = Column(INTEGER, primary_key=True)
     pub_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
-    data_dec = Column(DATE, nullable=True, default=None)
+    date_dec = Column(DATE, nullable=True, default=None)
 
 
 class Extradition(Base):
