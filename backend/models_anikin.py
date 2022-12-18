@@ -85,20 +85,20 @@ class Halls(Base):
 class Shelves(Base):
     __tablename__ = "shelves"
     sh_id = Column(INTEGER, primary_key=True)
-    h_id = Column(ForeignKey('halls.hall_id'), nullable=False, index=True)
+    h_id = Column(ForeignKey('halls.h_id'), nullable=False, index=True)
 
 
 class Publication(Base):
     __tablename__ = "publication"
     pub_id = Column(INTEGER, primary_key=True)
-    sh_id = Column(ForeignKey('shelves.shelf_id'), nullable=False, index=True)
+    sh_id = Column(ForeignKey('shelves.sh_id'), nullable=False, index=True)
     book_id = Column(ForeignKey('books.b_id'), nullable=False, index=True)
 
 
 class Books(Base):
     __tablename__ = "books"
     b_id = Column(INTEGER, primary_key=True)
-    b_name = Column(ForeignKey('authors.a_book'), nullable=False, index=True)
+    b_name = Column(ForeignKey('authors.b_name'), nullable=False, index=True)
     b_type = Column(VARCHAR(50), nullable=True, default=None)
     quantity = Column(INTEGER, nullable=True, default=None)
     a_id = Column(ForeignKey('authors.a_id'), nullable=False, index=True)
