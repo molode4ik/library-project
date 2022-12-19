@@ -107,7 +107,7 @@ class Books(Base):
 class Authors(Base):
     __tablename__ = "authors"
     a_id = Column(INTEGER, primary_key=True)
-    authors_fio = Column(VARCHAR(50), nullable=True, default=None)
+    authors_FIO = Column(VARCHAR(50), nullable=True, default=None)
     b_name = Column(VARCHAR(50), nullable=True, default=None, unique=True)
 
 
@@ -130,8 +130,8 @@ class Extradition(Base):
     e_id = Column(INTEGER, primary_key=True)
     p_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
     user_id = Column(ForeignKey('users.u_id'), nullable=False, index=True)
-    deadline = Column(DATE, nullable=True, default=None)
-    datetime = Column(DATE, nullable=True, default=None)
+    finish_date = Column(DATE, nullable=True, default=None)
+    start_date = Column(DATE, nullable=True, default=None)
     lw_id = Column(ForeignKey('library_workers.lw_id'), nullable=False, index=True)
 
 
