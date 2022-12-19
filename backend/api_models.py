@@ -20,6 +20,7 @@ class Student(BaseModel):
     course: int
     faculty: str
     id_library: Optional[int] = None
+    type: str
 
 
 class People(BaseModel):
@@ -49,6 +50,9 @@ class Scientist(BaseModel):
 
 class UserData(BaseModel):
     user_type: str
+    firstname: Optional[str] = None
+    middlename: Optional[str] = None
+    lastname: Optional[str] = None
     organization: Optional[str] = None
     theme: Optional[str] = None
     id_library: Optional[int] = None

@@ -1,11 +1,22 @@
 import sqlalchemy_connect as db
 import api_models as models
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from session import get_session, check_connection
 import scripts
 
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event('startup')
@@ -15,11 +26,18 @@ async def startup():
     connection = get_session()
 
 
+@app.post('/api/get_users')
+async def get_users(user: models.UserData):
+    table_name = scripts.get_table_name(user.user_type.lower())
+    columns = db.get_columns({'tablename': table_name}, check_connection(connection))
+    scripts.get_not_null_values(user, columns)
+
+
 # 2-3 request
-@app.post('/api/get_borrowed_books')
+@app.post('/api/get_users_with_book')
 async def get_borrowed_books(book_name: str):
     try:
-        result = db.list_interval({'a_book': book_name}, check_connection(connection))
+        result = db.get_borrowed_books({'a_book': book_name}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -43,7 +61,7 @@ async def get_books_date(start_date: str, finish_date: str):
 @app.post('/api/get_user_info')
 async def get_user_info(user_id: int):
     try:
-        result = db.get_user_info(user_id, check_connection(connection))
+        result = db.get_user_info({'user_id': user_id}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -55,7 +73,7 @@ async def get_user_info(user_id: int):
 @app.post('/api/get_user_info_library')
 async def get_user_info_library(user_id: int):
     try:
-        result = db.get_user_info_library({'name': user_id}, check_connection(connection))
+        result = db.get_user_info_library({'user_id': user_id}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -127,7 +145,7 @@ async def get_scrapped_books():
 @app.post('/api/get_hall_workers')
 async def get_hall_workers(hall_id: int):
     try:
-        result = db.get_hall_workers({'hall_id': hall_id}, check_connection(connection))
+        result = db.get_hall_workers({'h_id': hall_id}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -148,22 +166,10 @@ async def get_overdue_users():
 
 
 # 14 request
-@app.post('/api/get_inventory_numbers')
-async def get_inventory_numbers(book_name: str):
-    try:
-        result = db.get_inventory_numbers({'book': book_name}, check_connection(connection))
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
-
-# 14 request
 @app.post('/api/get_inventory_numbers_by_book')
-async def get_inventory_numbers_by_book(author_name: str):
+async def get_inventory_numbers_by_book(book_name: str):
     try:
-        result = db.get_inventory_numbers_by_book({'book': author_name}, check_connection(connection))
+        result = db.get_inventory_numbers_by_book({'book': book_name}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -195,95 +201,20 @@ async def get_popular_books():
         return result
 
 
-@app.post('/api/add_student')
-async def add_student(student: models.Student):
+@app.post('/api/add_user')
+async def add_user(user: models.UserData):
     try:
-        req_data = {
-            'fio': f'{student.lastname} {student.firstname} {student.middlename}',
-            'id_library': student.id_library,
-            'university': student.university,
-            'course': student.course,
-            'faculty': student.faculty
-        }
-        db.add_student(req_data, check_connection(connection))
+        table_name = scripts.get_table_name(user.user_type.lower())
+        columns = db.get_columns({'tablename': table_name}, check_connection(connection))
+        req_data = scripts.get_not_null_values(user, columns)
+        req_data.update({'fio': f"{user.lastname} {user.firstname} {user.middlename}", 'id_library': user.id_library, 'u_type': user.user_type})
+        scripts.add_user(req_data, table_name, check_connection(connection))
         result = 0
     except Exception as er:
         print(er)
         result = -1
     finally:
         return result
-
-
-@app.post('/api/add_teacher')
-async def add_teacher(teacher: models.Teacher):
-    try:
-        req_data = {
-            'fio': f'{teacher.lastname} {teacher.firstname} {teacher.middlename}',
-            'id_library': teacher.id_library,
-            'university': teacher.university,
-            'rank': teacher.rank,
-            'faculty': teacher.faculty
-        }
-        db.add_teacher(req_data, check_connection(connection))
-        result = 0
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
-
-@app.post('/api/add_people')
-async def add_people(people: models.People):
-    try:
-        req_data = {
-            'fio': f'{people.lastname} {people.firstname} {people.middlename}',
-            'id_library': people.id_library,
-            'place': people.place
-        }
-        db.add_people(req_data, check_connection(connection))
-        result = 0
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
-
-@app.post('/api/add_pensioner')
-async def add_pensioner(pensioner: models.Pensioner):
-    try:
-        req_data = {
-            'fio': f'{pensioner.lastname} {pensioner.firstname} {pensioner.middlename}',
-            'id_library': pensioner.id_library,
-            'certificate': pensioner.certificate
-        }
-        db.add_pensioner(req_data, check_connection(connection))
-        result = 0
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
-
-@app.post('/api/add_scientist')
-async def add_scientist(scientist: models.Scientist):
-    try:
-        req_data = {
-            'fio': f'{scientist.lastname} {scientist.firstname} {scientist.middlename}',
-            'id_library': scientist.id_library,
-            'organization': scientist.organization,
-            'theme': scientist.theme
-        }
-        db.add_scientist(req_data, check_connection(connection))
-        result = 0
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
 
 
 @app.post('/api/get_students')
