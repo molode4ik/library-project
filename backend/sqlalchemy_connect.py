@@ -7,20 +7,20 @@ def get_libraries(connection):
     return {i: j for i, j in connection.execute(
         text("SELECT l_id, name FROM libraries")).fetchall()}
 
-def pop(connection,d1,d2,d3,d4):
-    data = {
-        'd1': d1,
-        'd2': d2,
-        'd3': d3,
-        'd4': d4
+# def pop(connection,d1,d2,d3,d4):
+#     data = {
+#         'd1': d1,
+#         'd2': d2,
+#         'd3': d3,
+#         'd4': d4
+# 
+#     }
+#     return connection.execute(
+#         text(
+#             "SELECT b_id, b_type, quantity, books.b_name FROM books JOIN authors ON books.a_id = authors.a_id")).fetchall()
 
-    }
-    return connection.execute(
-        text(
-            "SELECT b_id, b_type, quantity, books.b_name FROM books JOIN authors ON books.a_id = authors.a_id")).fetchall()
 
-
-def get_column(req_data: dict, connection):
+def get_columns(req_data: dict, connection):
     data = {
         'tablename': req_data.get('tablename')
     }
@@ -44,14 +44,20 @@ def get_user_id(connection, fio, id_library, u_type):
     return connection.execute(text("SELECT max(u_id) from users")).fetchone()[0]
 
 
+# def get_authors(connection):
+#     return {a_id: {"author_fio": author_fio, "book_name": book_name} for a_id, author_fio, book_name in connection.execute(
+#         text("SELECT a_id, authors_fio, b_name FROM authors")).fetchall()}
 def get_authors(connection):
-    return {a_id: {"author_fio": author_fio, "book_name": book_name} for a_id, author_fio, book_name in connection.execute(
-        text("SELECT a_id, authors_fio, b_name FROM authors")).fetchall()}
-
-
+    return [[a_id, authors, b_name] for a_id, authors, b_name in connection.execute(text("SELECT a_id, authors_fio, b_name FROM authors")).fetchall()]
+print(get_authors(get_session()))
 def get_books(connection):
-    return {b_id: {"type": b_type, "quantity": quantity, "book_name": book_name} for b_id, b_type, quantity, book_name in connection.execute(
-        text("SELECT b_id, b_type, quantity, books.b_name FROM books JOIN authors ON books.a_id = authors.a_id")).fetchall()}
+    return {b_id: {"type": b_type, "quantity": quantity, "book_name": book_name, "author": authors_fio, "shelf": sh_id, "hall":h_id, "library": l_id} for b_id, b_type, quantity, book_name, authors_fio, sh_id, h_id, l_id in connection.execute(
+        text("""SELECT b_id, b_type, quantity, books.b_name, authors_fio, shelves.sh_id, number_hall, location FROM books 
+                 JOIN authors ON books.a_id = authors.a_id
+                 JOIN publication ON book_id = b_id 
+                 JOIN shelves ON publication.sh_id = shelves.sh_id
+                 JOIN halls ON halls.h_id = shelves.h_id
+                 JOIN libraries ON libraries.l_id = halls.l_id""")).fetchall()}
 
 
 def add_student(req_data: dict, connection):
@@ -282,9 +288,7 @@ def get_popular_books(connection):  # 16 запрос
 #         "fio":"fff",
 #         "id_library": 5,
 #         "u_type": "школьние",
-#         "university": "GORHOZ",
-#         "faculty": "asaaaa",
-#         "rank": "BIGIGIG"
+#         "certificate": 234
 #     }
-# 
-# print(add_teacher(dit, get_session()))
+#
+# print(add_pensioner(dit, get_session()))
