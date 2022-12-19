@@ -108,7 +108,7 @@ class Books(Base):
 class Authors(Base):
     __tablename__ = "authors"
     a_id = Column(INTEGER, primary_key=True)
-    authors_FIO = Column(VARCHAR(50), nullable=True, default=None)
+    authors_fio = Column(VARCHAR(50), nullable=True, default=None)
     b_name = Column(VARCHAR(50), nullable=True, default=None, unique=True)
 
 
