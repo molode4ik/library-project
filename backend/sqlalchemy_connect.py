@@ -205,7 +205,7 @@ def get_scrapped_books(connection):  # 11 запрос
 
 def get_hall_workers(req_data: dict, connection):  # 12 запрос
     return {i: j for i, j in connection.execute(text("""SELECT library_workers.lw_id, library_workers.lw_fio FROM library_workers 
-                                 JOIN libraries ON library_id = l_id
+                                 JOIN libraries ON library.l_id = library_workers.l_id
                                  JOIN halls ON halls.l_id = libraries.l_id
                                  WHERE h_id = :h_id"""), **req_data).fetchall()}
 
@@ -222,7 +222,7 @@ def get_overdue_users(connection):  # 13 запрос
 # rework
 def get_inventory_numbers_by_book(req_data: dict, connection):  # 14 запрос
     return {b_name: ["shelf", shelf_id, "hall", number_hall, "library", name] for b_name, shelf_id, number_hall, name
-            in connection.execute(text("""SELECT b_name, sh_id, number_hall, libraries.name FROM users
+            in connection.execute(text("""SELECT b_name, shelves.sh_id, number_hall, libraries.name FROM users
                                  JOIN extradition ON u_id = user_id
                                  JOIN publication ON p_id = pub_id
                                  JOIN books ON book_id = b_id
@@ -235,12 +235,12 @@ def get_inventory_numbers_by_book(req_data: dict, connection):  # 14 запро�
 # rework
 def get_inventory_numbers_by_author(req_data: dict, connection):  # 15 запрос
     return {a_name: ["shelf", shelf_id, "hall", number_hall, "library", name] for a_name, shelf_id, number_hall, name
-            in connection.execute(text("""SELECT authors_fio, sh_id, number_hall, libraries.name FROM users
+            in connection.execute(text("""SELECT authors_fio, shelves.sh_id, number_hall, libraries.name FROM users
                                  JOIN extradition ON u_id = user_id
                                  JOIN publication ON p_id = pub_id
                                  JOIN books ON book_id = b_id
                                  JOIN shelves ON shelves.sh_id = publication.sh_id
-                                 JOIN halls ON shelves.hall_id = halls.hall_id
+                                 JOIN halls ON shelves.h_id = halls.h_id
                                  JOIN libraries ON halls.l_id = libraries.l_id
                                  JOIN authors ON authors.a_id = books.a_id
                                       WHERE authors_fio = :data"""), **req_data).fetchall()}
@@ -252,4 +252,3 @@ def get_popular_books(connection):  # 16 запрос
                                  JOIN publication ON p_id = pub_id
                                  JOIN books ON book_id = b_id
                                  GROUP BY b_name""")).fetchall()
-
