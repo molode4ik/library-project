@@ -115,7 +115,7 @@ class Library_workers(Base):
     __tablename__ = "library_workers"
     lw_id = Column(INTEGER, primary_key=True)
     l_id = Column(ForeignKey('libraries.l_id'), nullable=False, index=True)
-    lw_dio = Column(VARCHAR(50), nullable=True, default=None)
+    lw_fio = Column(VARCHAR(50), nullable=True, default=None)
 
 
 class Decommissioned(Base):
