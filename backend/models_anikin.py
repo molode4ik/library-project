@@ -136,4 +136,4 @@ class Extradition(Base):
     lw_id = Column(ForeignKey('library_workers.lw_id'), nullable=False, index=True)
 
 
-Base.metadata.create_all(create_engine("postgresql+psycopg2://postgres:postgres@192.168.249.28/library", ))
+Base.metadata.create_all(create_engine("postgresql+psycopg2://postgres:postgres@188.120.240.45/library", ))
