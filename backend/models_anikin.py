@@ -14,6 +14,7 @@ Base = declarative_base()
 class Users(Base):
     __tablename__ = "users"
     u_id = Column(INTEGER, primary_key=True)
+    u_type = Column(VARCHAR(50), nullable=True, default=None)
     u_last_date = Column(DATE, nullable=True, default=None)
     id_library = Column(INTEGER, nullable=True, default=None)
     u_fio = Column(VARCHAR(50), nullable=True, default=None)
