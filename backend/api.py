@@ -27,20 +27,25 @@ async def startup():
 
 @app.post('/api/get_users')
 async def get_users(user: models.UserData):
-    table_name = scripts.get_table_name(user.user_type.lower())
-    columns = db.get_columns({'tablename': table_name}, check_connection(connection))
-    search_values = scripts.get_not_null_values(user, columns)
-    select_string = scripts.get_selected_values(table_name, connection)
-    print(select_string)
-    result = []
-    for item in db.list_charters(search_values, table_name, select_string, check_connection(connection)):
-        temp = {}
-        for key, value in zip(select_string.split(','), item):
-            temp.update({
-                key.strip(): value
-            })
-        result.append(temp)
-    return result
+    try:
+        table_name = scripts.get_table_name(user.user_type.lower())
+        columns = db.get_columns({'tablename': table_name}, check_connection(connection))
+        search_values = scripts.get_not_null_values(user, columns)
+        select_string = scripts.get_selected_values(table_name, connection)
+        result = []
+        for item in db.list_charters(search_values, table_name, select_string, check_connection(connection)):
+            temp = {}
+            for key, value in zip(select_string.split(','), item):
+                temp.update({
+                    key.strip(): value
+                })
+            result.append(temp)
+    except Exception as er:
+        print(er)
+        result = -1
+    finally:
+        return result
+
 
 # 2-3 request
 @app.post('/api/get_users_with_book')
