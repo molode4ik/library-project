@@ -29,8 +29,18 @@ async def startup():
 async def get_users(user: models.UserData):
     table_name = scripts.get_table_name(user.user_type.lower())
     columns = db.get_columns({'tablename': table_name}, check_connection(connection))
-    scripts.get_not_null_values(user, columns)
-
+    search_values = scripts.get_not_null_values(user, columns)
+    select_string = scripts.get_selected_values(table_name, connection)
+    print(select_string)
+    result = []
+    for item in db.list_charters(search_values, table_name, select_string, check_connection(connection)):
+        temp = {}
+        for key, value in zip(select_string.split(','), item):
+            temp.update({
+                key.strip(): value
+            })
+        result.append(temp)
+    return result
 
 # 2-3 request
 @app.post('/api/get_users_with_book')
@@ -219,17 +229,6 @@ async def add_user(user: models.UserData):
         return result
 
 
-@app.post('/api/get_students')
-async def get_users():
-    try:
-        result = db.list_charters('students', check_connection(connection))
-    except Exception as er:
-        print(er)
-        result = -1
-    finally:
-        return result
-
-
 @app.post('/api/get_library_name')
 async def get_library_name(library_id: int):
     try:
@@ -252,7 +251,7 @@ async def get_authors():
             types = db_result.get(author).get('b_type').split(',')
             genres = db_result.get(author).get('genre').split(',')
             names = db_result.get(author).get('b_name').split(',')
-            for genre, book_type, name in zip(types, genres, names):
+            for genre, book_type, name in zip(genres,types,names):
                 books.append({
                     'genre': genre,
                     'type': book_type,

@@ -47,3 +47,18 @@ def get_not_null_values(data, columns):
                 if item[0] in column:
                     result.update({column: item[1]})
     return result
+
+
+def get_correct_columns(columns):
+    array = [column for column in columns if 'id' not in column and 'date' not in column ]
+    return ' '.join(array)
+
+
+def get_selected_values(table_name: str, connection):
+    columns = db.get_columns({'tablename': table_name}, connection)
+    user_columns = db.get_columns({'tablename': 'users'}, connection)
+    correct_columns = get_correct_columns(columns)
+    user_correct_columns = get_correct_columns(user_columns)
+    select = correct_columns + ' ' + user_correct_columns
+    return ', '.join(select.split())
+

@@ -131,8 +131,14 @@ def add_scientist(req_data: dict, connection):
         **data)
 
 
-def list_charters(table_name: str, connection):
-    return connection.execute(text(f"SELECT * FROM users JOIN {table_name} ON u_id = user_id")).fetchall()
+def list_charters(search_values: dict, table_name: str, select_string: str, connection):
+    string = ''
+    items = search_values.items()
+    for index, item in enumerate(items):
+        string += f" {item[0]} = '{item[1]}' "
+        if len(items) > 0 and index < len(items)-1:
+            string += 'AND'
+    return connection.execute(text(f"SELECT {select_string} FROM users JOIN {table_name} ON u_id = user_id WHERE {string.strip()}")).fetchall()
 
 
 def get_borrowed_books(req_data: dict, connection):  # 2-3 запрос
