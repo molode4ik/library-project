@@ -166,7 +166,7 @@ def get_borrowed_books(req_data: dict, connection):  # 2-3 запрос
 
 def list_interval(dates: dict, connection):  # 4 запрос
     return {i: j for i, j in connection.execute(text(
-        "SELECT u_fio, b_name FROM users JOIN extradition ON u_id = user_id JOIN publication ON p_id = pub_id JOIN books ON book_id = b_id WHERE :start_date < datetime AND :finish_date > datetime"),
+        "SELECT u_fio, b_name FROM users JOIN extradition ON u_id = user_id JOIN publication ON p_id = pub_id JOIN books ON book_id = b_id WHERE :start_date < start_date AND :finish_date > start_date"),
         **dates).fetchall()}
 
 
@@ -224,7 +224,7 @@ def get_users_with_deadline(connection):  # 10 запрос
         'data': cur_data()
     }
     return {i: j for i, j in connection.execute(
-        text("SELECT u_id, u_fio FROM extradition JOIN users ON user_id = u_id WHERE deadline < :data"),
+        text("SELECT u_id, u_fio FROM extradition JOIN users ON user_id = u_id WHERE finish_date < :data"),
         **data).fetchall()}
 
 
@@ -248,7 +248,7 @@ def get_overdue_users(connection):  # 13 запрос
     }
     return {i: j for i, j in connection.execute(text("""SELECT u_id, u_fio FROM extradition 
                                  JOIN users ON u_id = user_id
-                                 WHERE deadline < :data"""), **data).fetchall()}
+                                 WHERE finish_date < :data"""), **data).fetchall()}
 
 
 # rework
