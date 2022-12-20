@@ -25,21 +25,36 @@ async def startup():
     connection = get_session()
 
 
+@app.post('/api/get_readers')
+async def get_readers():
+    try:
+        result = db.get_all_users(check_connection(connection))
+    except Exception as er:
+        print(er)
+        result = -1
+    finally:
+        return result
+
+
 @app.post('/api/get_users')
 async def get_users(user: models.UserData):
     try:
+        result = []
         table_name = scripts.get_table_name(user.user_type.lower())
         columns = db.get_columns({'tablename': table_name}, check_connection(connection))
         search_values = scripts.get_not_null_values(user, columns)
         select_string = scripts.get_selected_values(table_name, connection)
-        result = []
-        for item in db.list_charters(search_values, table_name, select_string, check_connection(connection)):
+        searh = db.list_charters(None, table_name, select_string, check_connection(connection))
+        if search_values:
+            searh = db.list_charters(search_values, table_name, select_string, check_connection(connection))
+        for item in searh:
             temp = {}
             for key, value in zip(select_string.split(','), item):
                 temp.update({
                     key.strip(): value
                 })
             result.append(temp)
+
     except Exception as er:
         print(er)
         result = -1

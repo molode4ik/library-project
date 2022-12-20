@@ -35,7 +35,8 @@ def get_user_id(connection, fio, id_library, u_type):
 def get_authors(connection):
     return {authors_fio: {"genre": genre, "b_type": b_type, "b_name": b_name} for authors_fio, genre, b_type, b_name in
             connection.execute(
-                text("SELECT authors_fio, string_agg(genre, ','), string_agg(b_type, ','), string_agg(b_name, ',') FROM authors JOIN books ON books.a_id = authors.a_id GROUP BY authors_fio")).fetchall()}
+                text(
+                    "SELECT authors_fio, string_agg(genre, ','), string_agg(b_type, ','), string_agg(b_name, ',') FROM authors JOIN books ON books.a_id = authors.a_id GROUP BY authors_fio")).fetchall()}
 
 
 def get_books(connection):
@@ -131,14 +132,29 @@ def add_scientist(req_data: dict, connection):
         **data)
 
 
+def get_all_users(connection):
+    return [{"u_last_date": u_last_date, "u_fio": u_fio, "u_type": u_type} for u_last_date, u_fio, u_type in
+            connection.execute(text(f"SELECT u_last_date, u_fio, u_type FROM users ")).fetchall()]
+
+
 def list_charters(search_values: dict, table_name: str, select_string: str, connection):
     string = ''
-    items = search_values.items()
-    for index, item in enumerate(items):
-        string += f" {item[0]} = '{item[1]}' "
-        if len(items) > 0 and index < len(items)-1:
-            string += 'AND'
-    return connection.execute(text(f"SELECT {select_string} FROM users JOIN {table_name} ON u_id = user_id WHERE {string.strip()}")).fetchall()
+    if search_values and search_values:
+        items = search_values.items()
+        for index, item in enumerate(items):
+            string += f" {item[0]} = '{item[1]}' "
+            if len(items) > 0 and index < len(items) - 1:
+                string += 'AND'
+        return connection.execute(text(
+            f"SELECT {select_string} FROM users JOIN {table_name} ON u_id = user_id WHERE {string.strip()}")).fetchall()
+    else:
+        return connection.execute(text(
+            f"SELECT {select_string} FROM users JOIN {table_name} ON u_id = user_id")).fetchall()
+
+
+def list_users(table_name: str, connection):
+    return connection.execute(
+        text(f"SELECT dic['values'] FROM users JOIN {dic['table_name']} ON u_id = user_id")).fetchall()
 
 
 def get_borrowed_books(req_data: dict, connection):  # 2-3 запрос
