@@ -14,8 +14,8 @@ Base = declarative_base()
 class Users(Base):
     __tablename__ = "users"
     u_id = Column(INTEGER, primary_key=True)
-    u_type = Column(VARCHAR(50), nullable=True, default=None)
     u_last_date = Column(DATE, nullable=True, default=None)
+    u_type = Column(VARCHAR(50), nullable=True, default=None)
     id_library = Column(INTEGER, nullable=True, default=None)
     u_fio = Column(VARCHAR(50), nullable=True, default=None)
 
@@ -89,27 +89,21 @@ class Shelves(Base):
     h_id = Column(ForeignKey('halls.h_id'), nullable=False, index=True)
 
 
-class Publication(Base):
-    __tablename__ = "publication"
-    pub_id = Column(INTEGER, primary_key=True)
-    sh_id = Column(ForeignKey('shelves.sh_id'), nullable=False, index=True)
-    book_id = Column(ForeignKey('books.b_id'), nullable=False, index=True)
-
-
 class Books(Base):
     __tablename__ = "books"
     b_id = Column(INTEGER, primary_key=True)
-    b_name = Column(ForeignKey('authors.b_name'), nullable=False, index=True)
+    b_name = Column(VARCHAR(50), nullable=True, default=None)
     b_type = Column(VARCHAR(50), nullable=True, default=None)
+    genre = Column(VARCHAR(50), nullable=True, default=None)
     quantity = Column(INTEGER, nullable=True, default=None)
     a_id = Column(ForeignKey('authors.a_id'), nullable=False, index=True)
+    sh_id = Column(ForeignKey('shelves.sh_id'), nullable=False, index=True)
 
 
 class Authors(Base):
     __tablename__ = "authors"
     a_id = Column(INTEGER, primary_key=True)
     authors_fio = Column(VARCHAR(50), nullable=True, default=None)
-    b_name = Column(VARCHAR(50), nullable=True, default=None, unique=True)
 
 
 class Library_workers(Base):
@@ -122,14 +116,14 @@ class Library_workers(Base):
 class Decommissioned(Base):
     __tablename__ = "decommissioned"
     d_id = Column(INTEGER, primary_key=True)
-    pub_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
+    b_id = Column(ForeignKey('books.b_id'), nullable=False, index=True)
     date_dec = Column(DATE, nullable=True, default=None)
 
 
 class Extradition(Base):
     __tablename__ = "extradition"
     e_id = Column(INTEGER, primary_key=True)
-    p_id = Column(ForeignKey('publication.pub_id'), nullable=False, index=True)
+    b_id = Column(ForeignKey('books.b_id'), nullable=False, index=True)
     user_id = Column(ForeignKey('users.u_id'), nullable=False, index=True)
     finish_date = Column(DATE, nullable=True, default=None)
     start_date = Column(DATE, nullable=True, default=None)

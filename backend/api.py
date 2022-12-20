@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from session import get_session, check_connection
 import scripts
 
-
 app = FastAPI()
 
 origins = ["*"]
@@ -109,7 +108,8 @@ async def get_serviced_users(worker: int):
 @app.post('/api/get_worker_production')
 async def get_worker_production(start_date: str, finish_date: str):
     try:
-        result = db.get_worker_production({'start_date': start_date, 'finish_date': finish_date}, check_connection(connection))
+        result = db.get_worker_production({'start_date': start_date, 'finish_date': finish_date},
+                                          check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -207,7 +207,9 @@ async def add_user(user: models.UserData):
         table_name = scripts.get_table_name(user.user_type.lower())
         columns = db.get_columns({'tablename': table_name}, check_connection(connection))
         req_data = scripts.get_not_null_values(user, columns)
-        req_data.update({'fio': f"{user.lastname} {user.firstname} {user.middlename}", 'id_library': user.id_library, 'u_type': user.user_type})
+        req_data.update({'fio': f"{user.lastname} {user.firstname} {user.middlename}", 'id_library': user.id_library,
+                         'u_type': user.user_type})
+        print(req_data)
         scripts.add_user(req_data, table_name, check_connection(connection))
         result = 0
     except Exception as er:
@@ -242,7 +244,22 @@ async def get_library_name(library_id: int):
 @app.post('/api/get_authors')
 async def get_authors():
     try:
-        result = db.get_authors(check_connection(connection))
+        result = []
+        db_result = db.get_authors(check_connection(connection))
+        authors = db_result.keys()
+        for author in authors:
+            books = []
+            types = db_result.get(author).get('b_type').split(',')
+            genres = db_result.get(author).get('genre').split(',')
+            names = db_result.get(author).get('b_name').split(',')
+            for genre, book_type, name in zip(types, genres, names):
+                books.append({
+                    'genre': genre,
+                    'type': book_type,
+                    'name': name
+                })
+            author_array = {'author': author, 'books': books}
+            result.append(author_array)
     except Exception as er:
         print(er)
         result = -1

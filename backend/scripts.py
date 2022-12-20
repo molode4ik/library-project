@@ -25,15 +25,18 @@ def get_table_name(user_type: str):
 
 
 def add_user(req_data: dict, table_name: str, connection):
-    swithcer = {
-        'students': db.add_student(req_data, connection),
-        'teachers': db.add_teacher(req_data, connection),
-        'peoples': db.add_people(req_data, connection),
-        'schools': db.add_school(req_data, connection),
-        'scientists': db.add_scientist(req_data, connection),
-        'pensioners': db.add_pensioner(req_data, connection)
-    }
-    swithcer.get(table_name)
+    if table_name == 'students':
+        db.add_student(req_data, connection)
+    elif table_name == 'teachers':
+        db.add_teacher(req_data, connection)
+    elif table_name == 'peoples':
+        db.add_people(req_data, connection)
+    elif table_name == 'schools':
+        db.add_school(req_data, connection)
+    elif table_name == 'scientists':
+        db.add_scientist(req_data, connection)
+    elif table_name == 'pensioners':
+        db.add_pensioner(req_data, connection)
 
 
 def get_not_null_values(data, columns):

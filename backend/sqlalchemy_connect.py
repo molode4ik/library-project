@@ -1,24 +1,10 @@
 from sqlalchemy import create_engine, text
-from session import get_session
 from scripts import cur_data
 
 
 def get_libraries(connection):
     return {i: j for i, j in connection.execute(
         text("SELECT l_id, name FROM libraries")).fetchall()}
-
-
-def pop(connection, d1, d2, d3, d4):
-    data = {
-        'd1': d1,
-        'd2': d2,
-        'd3': d3,
-        'd4': d4
-
-    }
-    return connection.execute(
-        text(
-            "SELECT b_id, b_type, quantity, books.b_name FROM books JOIN authors ON books.a_id = authors.a_id")).fetchall()
 
 
 def get_columns(req_data: dict, connection):
@@ -47,17 +33,18 @@ def get_user_id(connection, fio, id_library, u_type):
 
 
 def get_authors(connection):
-    return {a_id: {"author_fio": author_fio, "book_name": book_name} for a_id, author_fio, book_name in
+    return {authors_fio: {"genre": genre, "b_type": b_type, "b_name": b_name} for authors_fio, genre, b_type, b_name in
             connection.execute(
-                text("SELECT a_id, authors_fio, b_name FROM authors")).fetchall()}
+                text("SELECT authors_fio, string_agg(genre, ','), string_agg(b_type, ','), string_agg(b_name, ',') FROM authors JOIN books ON books.a_id = authors.a_id GROUP BY authors_fio")).fetchall()}
 
 
 def get_books(connection):
-    return {b_id: {"type": b_type, "quantity": quantity, "book_name": book_name, "author": authors_fio, "shelf": sh_id, "hall":h_id, "library": l_id} for b_id, b_type, quantity, book_name, authors_fio, sh_id, h_id, l_id in connection.execute(
-        text("""SELECT b_id, b_type, quantity, books.b_name, authors_fio, shelves.sh_id, number_hall, location FROM books 
+    return {b_id: {"type": b_type, "genre": genre, "quantity": quantity, "book_name": book_name, "author": authors_fio,
+                   "shelf": sh_id, "hall": h_id, "library": l_id} for
+            b_id, b_type, genre, quantity, book_name, authors_fio, sh_id, h_id, l_id in connection.execute(
+            text("""SELECT b_id, b_type, genre, quantity, books.b_name, authors_fio, shelves.sh_id, number_hall, location FROM books 
                  JOIN authors ON books.a_id = authors.a_id
-                 JOIN publication ON book_id = b_id 
-                 JOIN shelves ON publication.sh_id = shelves.sh_id
+                 JOIN shelves ON books.sh_id = shelves.sh_id
                  JOIN halls ON halls.h_id = shelves.h_id
                  JOIN libraries ON libraries.l_id = halls.l_id""")).fetchall()}
 
@@ -148,49 +135,33 @@ def list_charters(table_name: str, connection):
     return connection.execute(text(f"SELECT * FROM users JOIN {table_name} ON u_id = user_id")).fetchall()
 
 
-def some(req_data: dict, connection):
-    """
-    req_data = {
-        'table_name' = str,
-        'b_name' = some value
-    }
-    """
-    ...
-
-
 def get_borrowed_books(req_data: dict, connection):  # 2-3 запрос
     return {i: j for i, j in connection.execute(text(
-        "SELECT u_id, u_fio FROM users JOIN extradition ON u_id = user_id JOIN publication ON p_id = pub_id JOIN books ON book_id = b_id WHERE b_name = :a_book"),
+        "SELECT u_id, u_fio FROM users JOIN extradition ON u_id = user_id JOIN books ON books.b_id = extradition.b_id WHERE b_name = :a_book"),
         **req_data).fetchall()}
 
 
 def list_interval(dates: dict, connection):  # 4 запрос
     return {i: j for i, j in connection.execute(text(
-        "SELECT u_fio, b_name FROM users JOIN extradition ON u_id = user_id JOIN publication ON p_id = pub_id JOIN books ON book_id = b_id WHERE :start_date < start_date AND :finish_date > start_date"),
+        "SELECT u_fio, b_name FROM users JOIN extradition ON u_id = user_id JOIN books ON books.b_id = extradition.b_id WHERE :start_date < start_date AND :finish_date > start_date"),
         **dates).fetchall()}
 
 
-def get_user_info(user_id: int, connection):  # 5 запрос должен передавать id пользователя
-    data = {
-        'user_id': user_id
-    }
-    return {i: j for i, j in connection.execute(text("""SELECT u_id, authors.b_name FROM users
+def get_user_info(req_data: dict, connection):  # 5 запрос должен передавать id пользователя
+    return {i: j for i, j in connection.execute(text("""SELECT u_id, b_name FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
                                  JOIN authors ON books.a_id = authors.a_id
                                  JOIN library_workers ON extradition.lw_id = library_workers.lw_id
-                                 JOIN libraries ON l_id = l_id
+                                 JOIN libraries ON libraries.l_id = library_workers.l_id
                                  WHERE id_library IN (SELECT id_library FROM users WHERE u_id = :user_id) AND u_id = :user_id"""),
-                                                **data).fetchall()}
+                                                **req_data).fetchall()}
 
 
 def get_user_info_library(req_data: dict,
                           connection):
-    return {i: j for i, j in connection.execute(text("""SELECT u_id, authors.b_name FROM users
+    return {i: j for i, j in connection.execute(text("""SELECT u_id, b_name FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
+                                 JOIN books ON books.b_id = extradition.b_id
                                  JOIN authors ON books.a_id = authors.a_id
                                  JOIN library_workers ON extradition.lw_id = library_workers.lw_id
                                  JOIN libraries ON libraries.l_id = library_workers.l_id
@@ -201,10 +172,9 @@ def get_user_info_library(req_data: dict,
 def get_books_from_shelf(req_data: dict, connection):  # 7 запрос
     return {i: j for i, j in connection.execute(text("""SELECT u_id, b_name FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
-                                 JOIN shelves ON shelves.sh_id = publication.sh_id
-                                 WHERE s_id = :shelf"""), **req_data).fetchall()}
+                                 JOIN books ON books.b_id = extradition.b_id
+                                 JOIN shelves ON shelves.sh_id = books.sh_id
+                                 WHERE shelves.sh_id = :shelf"""), **req_data).fetchall()}
 
 
 def get_serviced_users(req_data: dict, connection):  # 8 запрос
@@ -213,10 +183,9 @@ def get_serviced_users(req_data: dict, connection):  # 8 запрос
                                  WHERE lw_id = :worker"""), **req_data).fetchall()}
 
 
-def get_worker_production(req_data: dict, connection):  # 9 запрос
+def get_worker_production(connection):  # 9 запрос
     return {i: j for i, j in
-            connection.execute(text("SELECT lw_id, count(user_id) FROM extradition GROUP BY lw_id"),
-                               **req_data).fetchall()}
+            connection.execute(text("SELECT lw_id, count(user_id) FROM extradition GROUP BY lw_id")).fetchall()}
 
 
 def get_users_with_deadline(connection):  # 10 запрос
@@ -224,14 +193,13 @@ def get_users_with_deadline(connection):  # 10 запрос
         'data': cur_data()
     }
     return {i: j for i, j in connection.execute(
-        text("SELECT u_id, u_fio FROM extradition JOIN users ON user_id = u_id WHERE finish_date < :data"),
+        text("SELECT u_id, u_fio FROM extradition JOIN users ON user_id = u_id WHERE finish_date< :data"),
         **data).fetchall()}
 
 
 def get_scrapped_books(connection):  # 11 запрос
-    return {i: j for i, j in connection.execute(text("""SELECT b_id, b_name FROM decommissioned 
-                                JOIN publication ON decommissioned.pub_id = publication.pub_id
-                                JOIN books ON publication.book_id = books.b_id
+    return {i: j for i, j in connection.execute(text("""SELECT books.b_id, b_name FROM decommissioned 
+                                JOIN books ON books.b_id = decommissioned.b_id
                             """)).fetchall()}
 
 
@@ -251,28 +219,24 @@ def get_overdue_users(connection):  # 13 запрос
                                  WHERE finish_date < :data"""), **data).fetchall()}
 
 
-# rework
 def get_inventory_numbers_by_book(req_data: dict, connection):  # 14 запрос
     return {b_name: ["shelf", shelf_id, "hall", number_hall, "library", name] for b_name, shelf_id, number_hall, name
-            in connection.execute(text("""SELECT b_name, sh_id, number_hall, libraries.name FROM users
+            in connection.execute(text("""SELECT b_name, shelves.sh_id, number_hall, libraries.name FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
-                                 JOIN shelves ON shelves.sh_id = publication.sh_id
+                                 JOIN books ON books.b_id = extradition.b_id
+                                 JOIN shelves ON shelves.sh_id = books.sh_id
                                  JOIN halls ON shelves.h_id = halls.h_id
                                  JOIN libraries ON halls.l_id = libraries.l_id
                                  WHERE b_name = :book"""), **req_data).fetchall()}
 
 
-# rework
 def get_inventory_numbers_by_author(req_data: dict, connection):  # 15 запрос
     return {a_name: ["shelf", shelf_id, "hall", number_hall, "library", name] for a_name, shelf_id, number_hall, name
-            in connection.execute(text("""SELECT authors_fio, sh_id, number_hall, libraries.name FROM users
+            in connection.execute(text("""SELECT authors_fio, shelves.sh_id, number_hall, libraries.name FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
-                                 JOIN shelves ON shelves.sh_id = publication.sh_id
-                                 JOIN halls ON shelves.hall_id = halls.hall_id
+                                 JOIN books ON books.b_id = extradition.b_id
+                                 JOIN shelves ON shelves.sh_id = books.sh_id
+                                 JOIN halls ON shelves.h_id = halls.h_id
                                  JOIN libraries ON halls.l_id = libraries.l_id
                                  JOIN authors ON authors.a_id = books.a_id
                                       WHERE authors_fio = :data"""), **req_data).fetchall()}
@@ -281,6 +245,5 @@ def get_inventory_numbers_by_author(req_data: dict, connection):  # 15 запр�
 def get_popular_books(connection):  # 16 запрос
     return connection.execute(text("""SELECT max(b_name) FROM users
                                  JOIN extradition ON u_id = user_id
-                                 JOIN publication ON p_id = pub_id
-                                 JOIN books ON book_id = b_id
+                                 JOIN books ON extradition.b_id = books.b_id
                                  GROUP BY b_name""")).fetchall()
