@@ -18,6 +18,8 @@ class Users(Base):
     u_type = Column(VARCHAR(50), nullable=True, default=None)
     id_library = Column(INTEGER, nullable=True, default=None)
     u_fio = Column(VARCHAR(50), nullable=True, default=None)
+    login = Column(VARCHAR(50), nullable=True, default=None)
+    password = Column(VARCHAR(50), nullable=True, default=None)
 
 
 class Teachers(Base):
