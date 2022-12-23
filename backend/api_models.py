@@ -58,7 +58,9 @@ class UserData(BaseModel):
     id_library: Optional[int] = None
     certificate: Optional[int] = None
     place: Optional[str] = None
+    school: Optional[str] = None
     university: Optional[str] = None
     course: Optional[int] = None
     faculty: Optional[str] = None
     rank: Optional[str] = None
+    clas: Optional[int] = None

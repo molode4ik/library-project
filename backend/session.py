@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 
 
 def get_session():
-    engine = create_engine("postgresql+psycopg2://postgres:postgres@188.120.240.45/library", echo=True)
+    engine = create_engine("postgresql+psycopg2://postgres:library@188.120.240.45/library", echo=True)
     conn = engine.connect()
     return conn
 
