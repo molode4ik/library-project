@@ -70,16 +70,32 @@ async def get_users(user: models.UserData):
         return result
 
 
-# 2-3 request
+# 2 request
 @app.post('/api/get_users_with_book')
 async def get_borrowed_books(book_name: str):
     """
-        2-3 запросы
+        2 запросы
         Выдать перечень читателей, на руках у которых находится указанное произведение.
-        Получить список читателей, на руках у которых находится указанное издание (книга, журнал и т.д).
+
     """
     try:
         result = db.get_borrowed_books({'a_book': book_name}, check_connection(connection))
+    except Exception as er:
+        print(er)
+        result = -1
+    finally:
+        return result
+
+
+# 3 request
+@app.post('/api/get_users_with_type_book')
+async def get_borrowed_type_books(b_type: str):
+    """
+        3 запросы
+        Получить список читателей, на руках у которых находится указанное издание (книга, журнал и т.д).
+    """
+    try:
+        result = db.get_borrowed_type_books({'b_type': b_type}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -202,13 +218,13 @@ async def get_users_with_deadline():
 
 # 11 request
 @app.post('/api/get_scrapped_books')
-async def get_scrapped_books():
+async def get_scrapped_books(start_date: str, finish_date: str):
     """
         11 запрос
         Получить перечень указанной литературы, которая поступила (была списана) в течение некоторого периода.
     """
     try:
-        result = db.get_scrapped_books(check_connection(connection))
+        result = db.get_scrapped_books({"start_date": start_date, "finish_date": finish_date}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -234,13 +250,13 @@ async def get_hall_workers(number_hall: str):
 
 # 13 request
 @app.post('/api/get_overdue_users')
-async def get_overdue_users():
+async def get_overdue_users(start_date: str, finish_date: str):
     """
         13 запрос
         Получить список читателей, не посещавших библиотеку в течение указанного времени.
     """
     try:
-        result = db.get_overdue_users(check_connection(connection))
+        result = db.get_overdue_users({"start_date": start_date, "finish_date": finish_date}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
