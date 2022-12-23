@@ -121,13 +121,13 @@ async def get_user_info(u_fio: str):
 
 # 6 request
 @app.post('/api/get_user_info_library')
-async def get_user_info_library(user_id: int):
+async def get_user_info_library(u_fio: str):
     """
         6 запрос
         Получить перечень изданий, которыми в течение некоторого времени пользовался указанный читатель из фонда библиотеки, где он не зарегистрирован.
     """
     try:
-        result = db.get_user_info_library({'user_id': user_id}, check_connection(connection))
+        result = db.get_user_info_library({'u_fio': u_fio}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
@@ -218,13 +218,13 @@ async def get_scrapped_books():
 
 # 12 request
 @app.post('/api/get_hall_workers')
-async def get_hall_workers(hall_id: int):
+async def get_hall_workers(number_hall: str):
     """
         12 запрос
         Выдать список библиотекарей, работающих в указанном читальном зале некоторой библиотеки.
     """
     try:
-        result = db.get_hall_workers({'h_id': hall_id}, check_connection(connection))
+        result = db.get_hall_workers({'number_hall': number_hall}, check_connection(connection))
     except Exception as er:
         print(er)
         result = -1
