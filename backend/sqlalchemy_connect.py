@@ -1,11 +1,18 @@
 from sqlalchemy import create_engine, text
-from scripts import cur_data
-import hashlib
+from session import get_session
+from datetime import datetime
 
 
-def check_logpass(password, login, connection):
-    log, paswd = [[log, pas] for log, pas in connection.execute(text("SELECT login, password FROM users")).fetchall()]
-    hash_pass, hash_login = hashlib.md5(password.encode()), hashlib.md5(password.encode())
+def cur_data():
+    return str(datetime.now())[:11]
+
+
+def check_logpass(req_data: dict, connection):
+    pas = [l for l in connection.execute(text("SELECT password FROM users WHERE login = :login")).fetchall()]
+    if req_data["pass"] in pas:
+        return True
+    else:
+        return False
 
 
 def get_libraries(connection):
@@ -169,7 +176,7 @@ def get_borrowed_books(req_data: dict, connection):  # 2 запрос
 
 def get_borrowed_type_books(req_data: dict, connection):  # 3 запрос
     return connection.execute(text(
-        "SELECT u_fio, u_type  FROM users JOIN extradition ON u_id = user_id JOIN books ON books.b_id = extradition.b_id WHERE LOWER(b_name) = LOWER(:b_type)"),
+        "SELECT u_fio, u_type  FROM users JOIN extradition ON u_id = user_id JOIN books ON books.b_id = extradition.b_id WHERE LOWER(b_type) = LOWER(:b_type)"),
                               **req_data).fetchall()
 
 
@@ -232,26 +239,24 @@ def get_users_with_deadline(connection):  # 10 запрос
         **data).fetchall()
 
 
-def get_scrapped_books(connection):  # 11 запрос
+def get_scrapped_books(req_data: dict, connection):  # 11 запрос
     return connection.execute(text("""SELECT books.b_id, b_name FROM decommissioned 
                                 JOIN books ON books.b_id = decommissioned.b_id
-                            """)).fetchall()
+                                WHERE date_dec >:start_date AND date_dec <:finish_date
+                            """), **req_data).fetchall()
 
 
 def get_hall_workers(req_data: dict, connection):  # 12 запрос
-    return connection.execute(text("""SELECT library_workers.lw_id, library_workers.lw_fio FROM library_workers 
+    return connection.execute(text("""SELECT name, library_workers.lw_fio FROM library_workers 
                                  JOIN libraries ON libraries.l_id = library_workers.l_id
                                  JOIN halls ON halls.l_id = libraries.l_id
                                  WHERE halls.number_hall = :number_hall"""), **req_data).fetchall()
 
 
-def get_overdue_users(connection):  # 13 запрос
-    data = {
-        'data': cur_data()
-    }
+def get_overdue_users(req_data: dict, connection):  # 13 запрос
     return connection.execute(text("""SELECT u_id, u_fio FROM extradition 
-                                 JOIN users ON u_id = user_id
-                                 WHERE finish_date < :data"""), **data).fetchall()
+                                         JOIN users ON u_id = user_id
+                                         WHERE finish_date >:start_date AND finish_date < :finish_date"""), **req_data).fetchall()
 
 
 def get_inventory_numbers_by_book(req_data: dict, connection):  # 14 запрос
